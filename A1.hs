@@ -75,14 +75,18 @@ removeFirst = \e -> \list ->
                     [x] | e == x -> []
                     x:xs | not (x == e) -> x:removeFirst e xs 
                     x:xs -> xs
-main = print (removeFirst 4 [1,-9,-9,-9, 3, 2, 4, 3])
+-- main = print (removeFirst 4 [1,-9,-9,-9, 3, 2, 4, 3])
 -- Expected Output: [1,2,4,3]
 
 -- PART 5
 -- Write a function to find the maximum element in a list based on the result of applying a given function on each element.  Note that the original element is returned and not the transformed element.
 
 maxOn :: Ord b => (a -> b) -> [] a -> a
-maxOn = undefined
+maxOn = \fn -> \list ->
+    case list of
+        [x] -> x
+        x:xs | fn x > fn (maxOn fn xs) -> x
+        x:xs -> maxOn fn xs
 
 -- main = print (maxOn abs [1, 3, -2, -4, 3])
 -- Expected Output: -4
