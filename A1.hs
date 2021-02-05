@@ -39,47 +39,43 @@ score = \dna1 -> \dna2 ->
 -- PART 2
 -- We now want to calculate the best DNA overlap in the best alignment along with the score.  The DNA overlap will have nucleotides only where the aligned DNAs match while gaps and mismatches should be represented with "?".
 
-alignment :: String -> String -> (Int, String)
-alignment = \dna1 -> \dna2 ->
-    case dna1 of
-        "" -> case dna2 of
-                "" -> (0, "")
-                [y] -> (1, "1")
-                y:ys -> case (alignment "" ys) of
-                            (t,p) -> (1 + t, '2':p)
-        x:xs -> case dna2 of
-                    "" -> case (alignment xs "") of
-                            (t,p) -> (1 + t, '3':p)
-                    [y] -> (1, "")
-                    y:ys | (score dna1 dna2) == (4 + score xs ys) -> case (alignment xs ys) of
-                                                                        (t,p) -> (4 + t, 's':p)
-                    y:ys | (score dna1 dna2) == (3 + score xs ys) ->  case (alignment xs ys) of
-                                                                        (t,p) -> (3 + t, '4':p)
-                    y:ys | (score dna1 dna2) == (1 + score dna1 ys) -> case (alignment dna1 ys) of
-                                                                        (t,p) -> (1 + t, '5':p)
-                    y:ys | (score dna1 dna2) == (1 + score xs dna2) -> case (alignment xs dna2) of
-                                                                        (t,p) -> (1 + t, '6':p)
+-- alignment :: String -> String -> (Int, String)
+-- alignment = \dna1 -> \dna2 ->
 
-
-main = print (alignment "TCCG" "ATCCG")
--- Expected output: (24,"?T?TCCG")
+                    
+                    
+-- main = print (alignment "ACCATCT" "TGGTACTGGG") 
+-- -- Expected output: (24,"?T?TCCG")
 
 -- PART 3
 -- Make all possible pairs of elements in a given list
 
-makePairs :: [] a -> [] (a, a)
-makePairs = undefined
+makePairFirst:: [] a -> [] (a,a)
+makePairFirst = \list ->
+                case list of
+                    [x] -> []
+                    x:y:xs -> (x, y):makePairFirst(x:xs)
 
--- main = print (makePairs [1, 2, 3])
+makePairs :: [] a -> [] (a, a)
+makePairs = \list ->
+            case list of
+                [x] -> []
+                x:xs -> makePairFirst(x:xs) ++ makePairs(xs)
+
+-- main = print (makePairs [1,2,3,4,5, 6] )
 -- Expected Output: [(1,2),(1,3),(2,3)]
 
 -- PART 4
 -- Write a function to remove the first matching element in a given list
 
 removeFirst :: Eq a => a -> [a] -> [a]
-removeFirst = undefined
-
--- main = print (removeFirst 3 [1, 3, 2, 4, 3])
+removeFirst = \e -> \list ->
+                case list of
+                    [] -> []
+                    [x] | e == x -> []
+                    x:xs | not (x == e) -> x:removeFirst e xs 
+                    x:xs -> xs
+main = print (removeFirst 4 [1,-9,-9,-9, 3, 2, 4, 3])
 -- Expected Output: [1,2,4,3]
 
 -- PART 5
