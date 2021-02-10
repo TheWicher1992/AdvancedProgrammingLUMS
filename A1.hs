@@ -53,7 +53,7 @@ alignment = \dna1 -> \dna2 ->
                 y:ys | (x == y) && ((score dna1 dna2) == (4 + score xs ys)) -> 
                     let (s,o) = (alignment xs ys) in (4 + s, x:o)                  
                 y:ys | ((score dna1 dna2) == (3 + score xs ys)) -> 
-                    let (s,o) = (alignment xs ys) in (3 + s, '*':o)                  
+                    let (s,o) = (alignment xs ys) in (3 + s, '?':o)                  
                 y:ys | ((score dna1 dna2) == (1 + score dna1 ys)) -> 
                     let (s,o) = (alignment dna1 ys) in (1 + s, '?':o)
                     
@@ -198,8 +198,31 @@ contains = \tree -> \key ->
 
 -- PART 10
 -- Write a function that take a list of Trees of DNA strings.  The function should replace the two closest trees (according to highest score of DNA strings in the root node) with a new Node having the the DNA intersection (calculated with alignment function) at the root and the two removed trees as children.  The returned list will have one less element than the input list.  Use the functions written in above parts.
+
+calculatePairScore :: (Tree String, Tree String) -> Int
+calculatePairScore = \(tree1, tree2) ->
+    case tree1 of
+        Node l1 r1 v1 -> case tree2 of
+                            Node l2 r2 v2 -> score v1 v2
+
+getClosestTrees :: [] (Tree String) -> (Tree String, Tree String)
+getClosestTrees = \trees -> maxOn calculatePairScore (makePairs trees)
+
+removePair:: (Tree String, Tree String) -> [] (Tree String) -> [] (Tree String)
+removePair = \(tree1, tree2) -> \trees -> (removeFirst tree1 (removeFirst tree2 trees))
+
+combineTreePair :: (Tree String, Tree String) -> Tree String
+combineTreePair = \(tree1, tree2) ->
+    case tree1 of
+        Node _ _ d1 -> case tree2 of
+                        Node _ _ d2 -> let (s, aligneDNA) = alignment d1 d2
+                                        in Node tree1 tree2 aligneDNA
+                                        
 evolStep :: [] (Tree String) -> [] (Tree String)
-evolStep = undefined
+evolStep = \trees -> let closestTrees = getClosestTrees trees
+                        in (combineTreePair closestTrees):(removePair closestTrees trees)
+
+
 
 -- main = print (evolStep [Node Nil Nil "AAATTT", Node Nil Nil "CCCTGGG", Node Nil Nil "ATTCCG", Node Nil Nil "TTATCCG"])
 -- Expected Output:
