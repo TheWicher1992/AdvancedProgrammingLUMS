@@ -9,4 +9,4 @@ score = \dna1 -> \dna2 ->
                     y:ys | y == x -> max (max (1 + score xs dna2) (1 + score dna1 ys)) (4 + score xs ys)
                     y:ys -> max (max (1 + score xs dna2) (1 + score dna1 ys)) (3 + score xs ys)
                     
-main = print (score "CCATCT" "GGTACTGGG")
+main = print (score "ACG" "CCTGAT")

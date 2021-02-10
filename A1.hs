@@ -22,6 +22,8 @@ import Control.Monad
 -- 2) Align the next nucleotide from first strand with a gap in the second
 -- 3) Align the next nucleotide from second strand with a gap in the first
 
+
+
 score :: String -> String -> Int
 score = \dna1 -> \dna2 ->
     case dna1 of
@@ -39,12 +41,26 @@ score = \dna1 -> \dna2 ->
 -- PART 2
 -- We now want to calculate the best DNA overlap in the best alignment along with the score.  The DNA overlap will have nucleotides only where the aligned DNAs match while gaps and mismatches should be represented with "?".
 
--- alignment :: String -> String -> (Int, String)
--- alignment = \dna1 -> \dna2 ->
-
+alignment :: String -> String -> (Int, String)
+alignment = \dna1 -> \dna2 ->
+    case dna1 of
+        "" -> case dna2 of
+                "" -> (0,"")
+                y:ys -> let (s,o) = alignment "" ys
+                        in (1+s,'?':o)
+        x:xs -> case dna2 of
+                "" -> (0, dna1)
+                y:ys | (x == y) && ((score dna1 dna2) == (4 + score xs ys)) -> 
+                    let (s,o) = (alignment xs ys) in (4 + s, x:o)                  
+                y:ys | ((score dna1 dna2) == (3 + score xs ys)) -> 
+                    let (s,o) = (alignment xs ys) in (3 + s, '*':o)                  
+                y:ys | ((score dna1 dna2) == (1 + score dna1 ys)) -> 
+                    let (s,o) = (alignment dna1 ys) in (1 + s, '?':o)
                     
                     
--- main = print (alignment "ACCATCT" "TGGTACTGGG") 
+-- main = print (alignment "GACGA" "TGCTTTTAAG") 
+--main = print (alignment "CCACG" "CACCTGAT")
+--main = print (alignment "CCACG" "CACCTGAT")
 -- -- Expected output: (24,"?T?TCCG")
 
 -- PART 3
@@ -97,18 +113,45 @@ maxOn = \fn -> \list ->
 data Tree a = Nil | Node (Tree a) (Tree a) a
 
 instance Eq a => Eq (Tree a) where
-    (==) = undefined
+    (==) = \tree1 -> \tree2 ->
+            case tree1 of
+                Nil -> case tree2 of
+                        Nil -> True
+                        _ -> False
+                Node l1 r1 v1 -> case tree2 of
+                                Nil -> False
+                                Node l2 r2 v2 | (v1 == v2) -> True && ((==) l1 l2) && ((==) r1 r2)  
+                                _ -> False
 
 -- main = print [Nil == Node Nil Nil 5, Node Nil Nil 5 == Node Nil Nil 5, Node Nil Nil 6 == Node Nil Nil 5]
+-- main = print [Nil == Node Nil Nil 5, Node Nil Nil 5 == Node Nil Nil 5, Node Nil Nil 6 == Node Nil Nil 5]
+
 -- Expected Output: [False,True,False]
 
 -- PART 7
 -- Make Tree an instance of Show typeclass by defining the show function that takes a Tree and returns a string.  The function should neatly print the tree, as shown in the example and expected output below.
 
-instance Show a => Show (Tree a) where
-    show = undefined
+showLevel :: Show a => Int ->  a -> String
+showLevel = \depth -> \element ->
+    case depth of
+        0 -> show element
+        1 -> "+---" ++ show element
+        _ -> "|   " ++ showLevel (depth-1) element
 
--- main = print (Node (Node (Node (Node Nil (Node Nil Nil 3) 2) (Node Nil Nil 5) 4) Nil 6) (Node Nil Nil 8) 7)
+showTreeHelper :: Show a => Int -> Tree a -> String
+showTreeHelper = \depth -> \tree ->
+    case tree of
+        Nil -> ""
+        Node l r v -> showLevel depth v ++ "\n" ++ showTreeHelper (depth+1) l ++ showTreeHelper (depth+1) r
+
+
+instance Show a => Show (Tree a) where
+    show = \tree -> showTreeHelper 0 tree
+
+
+
+main = print (Node (Node (Node (Node Nil (Node Nil Nil 3) 2) (Node Nil Nil 5) 4) Nil 6) (Node Nil Nil 8) 7)
+
 -- Expected Output:
 -- 7
 -- +---6
@@ -122,7 +165,9 @@ instance Show a => Show (Tree a) where
 -- Consider a tree containing a tuple of key-value pairs such that the tree is organized as a binary search tree based on the key value.  A binary search tree stores all keys less than the one in the root in the left sub-tree and the rest in the right subtree.  Write a function to insert new values in the tree according to the above constraint.  Remember that insertion means returning a new tree with the new element added, that you do not have to think how recursive call inserts in subtrees, and that you only really have to insert if the tree is Nil.
 
 insert :: Ord a => Tree (a,b) -> (a,b) -> Tree (a,b)
-insert = undefined
+insert = \tree -> \data ->
+    case tree of
+        Nil -> 
 
 -- main = print (insert (insert (insert (insert Nil (7, "Seven")) (8, "Eight")) (6, "Six")) (5, "Five"))
 -- Expected Output:

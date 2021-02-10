@@ -56,7 +56,7 @@ function getMinimumPenalty($x, $y,
 	
 	while ( !($i == 0 || $j == 0)) 
 	{ 
-		if ($x[$i - 1] == $y[$j - 1]) 
+		if ($x[$i - 1] == $y[$j - 1] && $dp[$i][$j] == $dp[$i - 1][$j - 1] + $pp) 
 		{ 
 			$xans[$xpos--] = $x[$i - 1]; 
 			$yans[$ypos--] = $y[$j - 1]; 
@@ -140,8 +140,8 @@ function getMinimumPenalty($x, $y,
 // $gene2 = "GTGTGGTACTGGG";
 
 // input strings 
-$gene1 = "ACCATCT"; 
-$gene2 = "TGGTACTGGG"; 
+$gene1 = "GACGA"; 
+$gene2 = "TGCTTTTAAG"; 
 // intialsing penalties 
 // of different types 
 $misMatchPenalty = 3; 
