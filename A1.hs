@@ -150,7 +150,7 @@ instance Show a => Show (Tree a) where
 
 
 
-main = print (Node (Node (Node (Node Nil (Node Nil Nil 3) 2) (Node Nil Nil 5) 4) Nil 6) (Node Nil Nil 8) 7)
+--main = print (Node (Node (Node (Node Nil (Node Nil Nil 3) 2) (Node Nil Nil 5) 4) Nil 6) (Node Nil Nil 8) 7)
 
 -- Expected Output:
 -- 7
@@ -165,11 +165,15 @@ main = print (Node (Node (Node (Node Nil (Node Nil Nil 3) 2) (Node Nil Nil 5) 4)
 -- Consider a tree containing a tuple of key-value pairs such that the tree is organized as a binary search tree based on the key value.  A binary search tree stores all keys less than the one in the root in the left sub-tree and the rest in the right subtree.  Write a function to insert new values in the tree according to the above constraint.  Remember that insertion means returning a new tree with the new element added, that you do not have to think how recursive call inserts in subtrees, and that you only really have to insert if the tree is Nil.
 
 insert :: Ord a => Tree (a,b) -> (a,b) -> Tree (a,b)
-insert = \tree -> \data ->
+insert = \tree -> \d ->
     case tree of
-        Nil -> 
+        Nil -> Node Nil Nil d
+        Node l r v -> case v of
+                        (nodeK, nodeV) -> case d of
+                                        (key, value) | key < nodeK -> Node (insert l d) r v
+                                        _ -> Node l (insert r d) v
 
--- main = print (insert (insert (insert (insert Nil (7, "Seven")) (8, "Eight")) (6, "Six")) (5, "Five"))
+--main = print (insert (insert (insert (insert Nil (7, "Seven")) (8, "Eight")) (6, "Six")) (5, "Five"))
 -- Expected Output:
 -- (7,"Seven")
 -- +---(6,"Six")
@@ -180,11 +184,16 @@ insert = \tree -> \data ->
 -- Write a function to find values against a given key in the tree.  If the value is not found, return Nothing, otherwise return the value wrapped in Just.  Read about the Haskell Maybe data type.
 
 contains :: Ord a => Tree (a,b) -> a -> Maybe b
-contains = undefined
+contains = \tree -> \key ->
+    case tree of
+        Nil -> Nothing
+        Node l r (k,d) | k == key -> Just d
+        Node l r (k,d) | key < k -> contains l key
+        Node _ r _ -> contains r key
 
--- main = print (contains (insert (insert (insert (insert Nil (7, "Seven")) (8, "Eight")) (6, "Six")) (5, "Five")) 8)
+--main = print (contains (insert (insert (insert (insert Nil (7, "Seven")) (8, "Eight")) (6, "Six")) (5, "Five")) 8)
 -- Expected Output: Just "Eight"
--- main = print (contains (insert (insert (insert (insert Nil (7, "Seven")) (8, "Eight")) (6, "Six")) (5, "Five")) 9)
+--main = print (contains (insert (insert (insert (insert Nil (7, "Seven")) (8, "Eight")) (6, "Six")) (5, "Five")) 9)
 -- Expected Output: Nothing
 
 -- PART 10
