@@ -139,9 +139,9 @@ function getMinimumPenalty($x, $y,
 // $gene1 = "GCGACCATCT"; 
 // $gene2 = "GTGTGGTACTGGG";
 
-// input strings 
-$gene1 = "GACGA"; 
-$gene2 = "TGCTTTTAAG"; 
+// input strings  
+$gene1 = "???T??G"; 
+$gene2 = "AAATTT"; 
 // intialsing penalties 
 // of different types 
 $misMatchPenalty = 3; 

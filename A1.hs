@@ -49,7 +49,8 @@ alignment = \dna1 -> \dna2 ->
                 y:ys -> let (s,o) = alignment "" ys
                         in (1+s,'?':o)
         x:xs -> case dna2 of
-                "" -> (0, dna1)
+                "" -> let (s,o) = alignment "" xs
+                        in (1+s,'?':o)
                 y:ys | (x == y) && ((score dna1 dna2) == (4 + score xs ys)) -> 
                     let (s,o) = (alignment xs ys) in (4 + s, x:o)                  
                 y:ys | ((score dna1 dna2) == (3 + score xs ys)) -> 
@@ -217,14 +218,14 @@ combineTreePair = \(tree1, tree2) ->
         Node _ _ d1 -> case tree2 of
                         Node _ _ d2 -> let (s, aligneDNA) = alignment d1 d2
                                         in Node tree1 tree2 aligneDNA
-                                        
+
 evolStep :: [] (Tree String) -> [] (Tree String)
 evolStep = \trees -> let closestTrees = getClosestTrees trees
                         in (combineTreePair closestTrees):(removePair closestTrees trees)
 
 
 
--- main = print (evolStep [Node Nil Nil "AAATTT", Node Nil Nil "CCCTGGG", Node Nil Nil "ATTCCG", Node Nil Nil "TTATCCG"])
+--main = print (evolStep [Node Nil Nil "AAATTT", Node Nil Nil "CCCTGGG", Node Nil Nil "ATTCCG", Node Nil Nil "TTATCCG"])
 -- Expected Output:
 -- ["?T?TCCG"
 -- +---"ATTCCG"
@@ -236,10 +237,28 @@ evolStep = \trees -> let closestTrees = getClosestTrees trees
 -- PART 11
 -- Write a function that converts a given list of DNAs to single Node DNA Trees and then repeatedly applies the above function to combine all DNA Trees into a single Tree.  This is the evolutionary tree we wanted.
 
+makeTrees :: [] String -> [] (Tree String)
+makeTrees = \dnas ->
+    case dnas of 
+        [] -> []
+        x:xs -> Node Nil Nil x:makeTrees xs
+
+evolveTrees :: [] (Tree String) -> [] (Tree String)
+evolveTrees = \trees ->
+    case trees of
+        [x] -> trees
+        x:xs -> evolveTrees (evolStep trees)
+
+
+mtree::[] (Tree String)
+mtree = makeTrees ["AAATTT", "CCCTGGG", "ATTCCG", "TTATCCG"]
+
 makeEvolTree :: [] String -> Tree String
-makeEvolTree = undefined
+makeEvolTree = \dnas -> let [tree] = evolveTrees (makeTrees dnas)
+                        in tree
 
 -- main = print (makeEvolTree ["AAATTT", "CCCTGGG", "ATTCCG", "TTATCCG"])
+
 -- Expected Output:
 -- "???T???"
 -- +---"???T??G"
