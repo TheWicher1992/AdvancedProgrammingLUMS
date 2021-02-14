@@ -270,11 +270,53 @@ makeEvolTree = \dnas -> let [tree] = evolveTrees (makeTrees dnas)
 
 -- PART 12
 -- Our score function is inefficient due to repeated calls for the same suffixes.  Lets make a dictionary to remember previous results.  We will use the Tree of tuples and insert/contains functions above as our dictionary.  An extra dictionary argument is added.  If the result is in dictionary, we should return from there, otherwise, we return the result in a tuple combined with the updated dictionary.  Remember that you need to pass the dictionary to recursive calls and pass the updated dictionary from the first recursive call to the second and so on.
+-- score :: String -> String -> Int
+-- score = \dna1 -> \dna2 ->
+--     case dna1 of
+--         "" -> case dna2 of
+--                 "" -> 0
+--                 y:ys -> 1 + score "" ys
+--         x:xs -> case dna2 of
+--                     "" -> 1 + score xs ""    
+--                     y:ys | y == x -> max (max (1 + score xs dna2) (1 + score dna1 ys)) (4 + score xs ys)
+--                     y:ys -> max (max (1 + score xs dna2) (1 + score dna1 ys)) (3 + score xs ys)
+
+maxOf3:: Int -> Int -> Int -> Int
+maxOf3 = \n1 -> \n2 -> \n3 -> max (max n1 n2) n3
 
 scoreMemo :: (String, String) -> Tree ((String, String), Int) -> (Int, Tree ((String, String), Int))
-scoreMemo = undefined
+scoreMemo = \(dna1, dna2) -> \dict ->
+    case contains dict (dna1,dna2) of
+        Just s -> (s, dict)
+        Nothing -> case dna1 of
+                        "" -> case dna2 of
+                                "" -> (0, dict)
+                                y:ys -> let (s,d) = scoreMemo ("", ys) (dict)
+                                        in (1+s, d)
+                        x:xs -> case dna2 of
+                                "" -> let (s,d) = scoreMemo (xs, "") (dict)
+                                        in (1+s, d)
+                                y:ys | x==y -> 
+                                    let (s1,d1) = scoreMemo (xs, ys) dict
+                                    in let (s2,d2) = scoreMemo (xs, dna2) d1
+                                    in let (s3,d3) = scoreMemo (dna1, ys) d2
+                                    in case maxOf3 (4+s1) (1+s2) (1+s3) of
+                                        r | r == 4+s1 -> (4+s1, (insert d3 ((dna1,dna2),r)))
+                                        r | r == 1+s2 -> (1+s2, (insert d3 ((dna1,dna2),r)))
+                                        r | r == 1+s3 -> (1+s3, (insert d3 ((dna1,dna2),r)))
+                                y:ys -> 
+                                    let (s1,d1) = scoreMemo (xs, ys) dict
+                                    in let (s2,d2) = scoreMemo (xs, dna2) d1
+                                    in let (s3,d3) = scoreMemo (dna1, ys) d2
+                                    in case maxOf3 (3+s1) (1+s2) (1+s3) of
+                                        r | r == 3+s1 -> (3+s1, (insert d3 ((dna1,dna2),r)))
+                                        r | r == 1+s2 -> (1+s2, (insert d3 ((dna1,dna2),r)))
+                                        r | r == 1+s3 -> (1+s3, (insert d3 ((dna1,dna2),r)))
+                            
+--main = print (scoreMemo ("ATTCCG", "TTATCCG") Nil)
+--main = print (scoreMemo ("ATTCCG", "") Nil)
 
--- main = print (scoreMemo ("ATTCCG", "TTATCCG") Nil)
+
 -- Expected output:
 -- (24,(("G","G"),4)
 -- +---(("G","CG"),5)
@@ -289,10 +331,45 @@ data WithMemoType a b = WithMemo (Tree a -> (b,Tree a))
 scoreMemo2 :: (String, String) -> WithMemoType ((String, String), Int) Int
 scoreMemo2 = \x ->
     WithMemo (\d ->
-        undefined
+        let (dna1, dna2) = x
+        in case contains d x of
+            Just v -> (v, d)
+            Nothing -> case dna1 of
+                        "" -> case dna2 of
+                                "" -> (0, d)
+                                y:ys -> let WithMemo fn = scoreMemo2 ("", ys)
+                                        in let (s,d1) = fn d
+                                        in (1+s, d1)
+                        x:xs -> case dna2 of
+                                "" -> let WithMemo fn = scoreMemo2 (xs, "")
+                                        in let (s,d1) = fn d
+                                        in (1+s, d1)
+                                y:ys | x==y -> 
+                                        let WithMemo fn = scoreMemo2 (xs, ys)
+                                        in let (s1,d1) = fn d
+                                        in let WithMemo fn = scoreMemo2 (xs, dna2)
+                                        in let (s2,d2) = fn d1
+                                        in let WithMemo fn = scoreMemo2 (dna1, ys)
+                                        in let (s3,d3) = fn d2
+                                        in case maxOf3 (4+s1) (1+s2) (1+s3) of
+                                            r | r == 4+s1 -> (4+s1, (insert d3 ((dna1,dna2),r)))
+                                            r | r == 1+s2 -> (1+s2, (insert d3 ((dna1,dna2),r)))
+                                            r | r == 1+s3 -> (1+s3, (insert d3 ((dna1,dna2),r)))
+                                y:ys -> 
+                                        let WithMemo fn = scoreMemo2 (xs, ys)
+                                        in let (s1,d1) = fn d
+                                        in let WithMemo fn = scoreMemo2 (xs, dna2)
+                                        in let (s2,d2) = fn d1
+                                        in let WithMemo fn = scoreMemo2 (dna1, ys)
+                                        in let (s3,d3) = fn d2
+                                        in case maxOf3 (3+s1) (1+s2) (1+s3) of
+                                            r | r == 3+s1 -> (3+s1, (insert d3 ((dna1,dna2),r)))
+                                            r | r == 1+s2 -> (1+s2, (insert d3 ((dna1,dna2),r)))
+                                            r | r == 1+s3 -> (1+s3, (insert d3 ((dna1,dna2),r)))
     )
 
--- main = let WithMemo fn = scoreMemo2 ("ATTCCG", "TTATCCG") in print (fn Nil)
+
+--main = let WithMemo fn = scoreMemo2 ("ATTCCG", "TTATCCG") in print (fn Nil)
 -- Expected output: same as last part
 
 -- PART 14
@@ -305,11 +382,16 @@ instance Applicative (WithMemoType a) where
     pure = \x -> WithMemo (\d -> (x,d))
     (<*>) = ap
 
+--(>>=) ::  WithMemoType a a1 -> (a1 -> WithMemoType a b) -> WithMemoType a b
+
 instance Monad (WithMemoType a) where
-    (>>=) = undefined
+    (>>=) = \(WithMemo fn) -> \f ->
+        let (s,d) = fn Nil
+        in f s
 
 scoreMemo3 :: (String, String) -> WithMemoType ((String, String), Int) Int
 scoreMemo3 = undefined
 
--- main = let WithMemo fn = scoreMemo3 ("ATTCCG", "TTATCCG") in print (fn Nil)
+
+main = let WithMemo fn = scoreMemo3 ("ATTCCG", "TTATCCG") in print (fn Nil)
 -- Expected output: same as last part
