@@ -385,12 +385,64 @@ instance Applicative (WithMemoType a) where
 --(>>=) ::  WithMemoType a a1 -> (a1 -> WithMemoType a b) -> WithMemoType a b
 
 instance Monad (WithMemoType a) where
-    (>>=) = \(WithMemo fn) -> \f ->
-        let (s,d) = fn Nil
-        in f s
+    (>>=) = \(WithMemo fn) -> \f -> WithMemo (\d -> 
+                                                let (s,dic) = fn d
+                                                in let WithMemo f1 = f s
+                                                in f1 dic
+                                            )
 
 scoreMemo3 :: (String, String) -> WithMemoType ((String, String), Int) Int
-scoreMemo3 = undefined
+scoreMemo3 = \x ->
+    WithMemo (\d ->
+        let (dna1, dna2) = x
+        in case contains d x of
+            Just v -> (v, d)
+            Nothing -> case dna1 of
+                        "" -> case dna2 of
+                                "" -> (0, d)
+                                y:ys -> let WithMemo fn = scoreMemo2 ("", ys)
+                                        in let (s,d1) = fn d
+                                        in (1+s, d1)
+                        x:xs -> case dna2 of
+                                "" -> let WithMemo fn = scoreMemo2 (xs, "")
+                                        in let (s,d1) = fn d
+                                        in (1+s, d1)
+                                y:ys | x==y ->
+                                        let 
+                                        WithMemo fn = scoreMemo3 (xs,ys) >>=
+                                            \v1 -> scoreMemo3 (xs, dna2) >>= 
+                                            \v2 -> scoreMemo3 (dna1, ys) >>=
+                                            \v3 ->
+                                                WithMemo (
+                                                    \dict ->
+                                                        case maxOf3 (4+v1) (1+v2) (1+v3) of
+                                                            r | r == 4+v1 -> 
+                                                                (4+v1, (insert dict ((dna1,dna2),r)))
+                                                            r | r == 1+v2 -> 
+                                                                (1+v2, (insert dict ((dna1,dna2),r)))
+                                                            r | r == 1+v3 -> 
+                                                                (1+v3, (insert dict ((dna1,dna2),r))) 
+                                                    )
+                                        in fn d
+                                y:ys ->
+                                    let 
+                                    WithMemo fn = scoreMemo3 (xs,ys) >>=
+                                        \v1 -> scoreMemo3 (xs, dna2) >>= 
+                                        \v2 -> scoreMemo3 (dna1, ys) >>=
+                                        \v3 ->
+                                            WithMemo (
+                                                \dict ->
+                                                    case maxOf3 (3+v1) (1+v2) (1+v3) of
+                                                        r | r == 3+v1 -> 
+                                                            (3+v1, (insert dict ((dna1,dna2),r)))
+                                                        r | r == 1+v2 -> 
+                                                            (1+v2, (insert dict ((dna1,dna2),r)))
+                                                        r | r == 1+v3 -> 
+                                                            (1+v3, (insert dict ((dna1,dna2),r))) 
+                                                )
+                                    in fn d
+            )
+
 
 
 main = let WithMemo fn = scoreMemo3 ("ATTCCG", "TTATCCG") in print (fn Nil)
