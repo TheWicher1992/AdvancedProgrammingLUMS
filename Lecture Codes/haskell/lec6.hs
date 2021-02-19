@@ -22,10 +22,10 @@ height = \t ->
                 WithLog hr _ = height r
             in case t of
                 _ | hl > hr -> 
-                     (height l) >>= (\hl -> 
+                     bind (height l)  (\hl -> 
                         WithLog (hl+1) "left is higher")
                 _ -> 
-                     (height r) >>= (\hr ->
+                     bind (height r)  (\hr ->
                         WithLog (hr+1) "right is higher")
 
 bind :: WithLogType a -> (a -> WithLogType b) -> WithLogType b

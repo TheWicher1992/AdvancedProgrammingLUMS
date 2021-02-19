@@ -445,5 +445,5 @@ scoreMemo3 = \x ->
 
 
 
-main = let WithMemo fn = scoreMemo3 ("ATTCCG", "TTATCCG") in print (fn Nil)
+--main = let WithMemo fn = scoreMemo3 ("ATTCCG", "TTATCCG") in print (fn Nil)
 -- Expected output: same as last part
