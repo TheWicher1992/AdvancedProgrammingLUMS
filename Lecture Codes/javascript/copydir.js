@@ -65,23 +65,23 @@ const copydir = async (srcPath, dstPath) => {
     try {
         const dir = await readDir(srcPath)
         await mkdir(__dirname + `/${dstPath}`)
-        Promise.all(dir.map(async (file) => {
+        return Promise.all(dir.map(async (file) => {
             const fileName = __dirname + `/${srcPath}/${file}`
             const stat = await lstat(fileName)
             if (!stat.isDirectory()) {
                 const fileContents = await readFile(srcPath + `/${file}`)
                 await writeFile(dstPath + `/${file}`, fileContents)
+                console.log('w')
             }
             else {
-                copydir(srcPath + `/${file}`, dstPath + `/${file}`)
+                await copydir(srcPath + `/${file}`, dstPath + `/${file}`)
             }
 
         }))
     } catch (err) {
         console.log('The operation failed', err.code)
     }
-
-
 }
 
-//copydir('sameer', 'sameer2').then(() => console.log('All done'))
+
+copydir('sameer', 'sameer3').then(() => console.log('All done'))
