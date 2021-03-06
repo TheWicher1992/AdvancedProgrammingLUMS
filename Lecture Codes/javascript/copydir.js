@@ -60,63 +60,28 @@ const lstat = (path) =>
         })
     })
 
-const copyFile = (srcFile, destDir) =>
-    Promise.all([srcFile].map((fileName) =>
-        readFile(fileName)
-            .then((fileContents) => {
-                console.log(`${fileName} read, initiating write`)
-                return writeFile(`${destDir}/${fileName}`, fileContents)
-            })
-            .then(() => {
-                console.log(`${fileName} written`)
-            })
-            .catch(err => {
-                console.log(`Error processing ${fileName} ${err}`)
-            })
-    ))
-
 
 const copydir = async (srcPath, dstPath) => {
     try {
         const dir = await readDir(srcPath)
-        try {
-            await mkdir(__dirname + `/${dstPath}`)
-            return Promise.all(dir.map(async (file) => {
-                const fileName = __dirname + `/${srcPath}/${file}`
-                try {
-                    const stat = await lstat(fileName)
-                    if (!stat.isDirectory()) {
-                        try {
-                            const fileContents = await readFile(srcPath + `/${file}`)
-                            try {
-                                await writeFile(dstPath + `/${file}`, fileContents)
+        await mkdir(__dirname + `/${dstPath}`)
+        Promise.all(dir.map(async (file) => {
+            const fileName = __dirname + `/${srcPath}/${file}`
+            const stat = await lstat(fileName)
+            if (!stat.isDirectory()) {
+                const fileContents = await readFile(srcPath + `/${file}`)
+                await writeFile(dstPath + `/${file}`, fileContents)
+            }
+            else {
+                copydir(srcPath + `/${file}`, dstPath + `/${file}`)
+            }
 
-                            } catch (error) {
-                                console.log('Error while writing', error.code)
-                            }
-                        } catch (error) {
-                            console.log('Error while reading', error.code)
-                        }
-
-                    }
-                    else {
-                        copydir(srcPath + `/${file}`, dstPath + `/${file}`)
-                    }
-                } catch (error) {
-                    console.log('Error occured')
-                }
-
-            }))
-        }
-        catch (err) {
-            console.log('Error while making new directory', err.code)
-        }
-
+        }))
     } catch (err) {
-        console.log('Error while reading directory.', err.code)
+        console.log('The operation failed', err.code)
     }
 
 
 }
 
-copydir('dest', 'sameer').then(() => console.log('All done'))
+//copydir('sameer', 'sameer2').then(() => console.log('All done'))
