@@ -17,8 +17,6 @@ const initialboard = [[['blue', 'blue', 'blue', 'blue'], [], [], [], [], [], [],
 
 let boardState = JSON.parse(JSON.stringify(initialboard))
 
-//currentState[7][0].push('green')
-
 
 const readFile = (fileName) =>
     new Promise((resolve, reject) => {
@@ -160,8 +158,6 @@ const sendCurrentBoardState = (ws) => {
     send(ws, action)
 }
 const sendDiceState = (ws) => {
-    //diceStateMap[ws] = dice()
-    //diceStateMap.set(ws, dice())
     const action = {
         type: 'dice',
         value: diceState
@@ -231,7 +227,7 @@ const handler = (ws) => {
     ws.on('message', (data) => {
         const action = JSON.parse(data)
         console.log(action)
-        //printDiceState()
+
         if (action.type == 'click') {
             const row = action.coords.row
             const col = action.coords.col
@@ -247,7 +243,7 @@ const handler = (ws) => {
                         }
                     }
                 } else if (action.color === 'green' && moveable) {
-                    if (row === 7 && col > 8) {
+                    if (row === 7 && col >= 8) {
                         const diff = col - 8
                         if (diff < diceState) {
                             moveable = false
@@ -263,7 +259,7 @@ const handler = (ws) => {
                     }
                 }
                 else if (action.color === 'yellow' && moveable) {
-                    if (col === 7 && row > 8) {
+                    if (col === 7 && row >= 8) {
                         const diff = row - 8
                         if (diff < diceState) {
                             moveable = false
@@ -371,9 +367,7 @@ wss.on('connection', (ws) => {
 
     ws.on('close', () => {
         players.splice(players.indexOf(ws), 1)
-        // playerColorMap.delete(ws)
-        // playerCount--
-        // boardState = [...initialboard]
+
 
         players.forEach(async (player) => {
             await sendPromisify(player, {
@@ -381,7 +375,6 @@ wss.on('connection', (ws) => {
             })
         })
         resetGameState()
-        // sendAll('reset')
 
         console.log('DISCONNECTED')
     })
