@@ -1,0 +1,32 @@
+PART1:
+The server is listening for any username messages. and as soon as it receives a username messages
+the server sends back the string represeting the grid. When client receives the string it parses
+it in to a 2d array. And then I used array.map functoin to render the board on the scree. While
+rendering I also attached all the mouse events to it. On mouse down event I sent the letter which
+was clicked on the board to the server and the server calculates the letter that the user click on.
+PART2:
+I created a new state as boardIndexes, and I used it to track the location of the cursor on the grid.
+By using the onMouseDown and onMouseEnter and onMouseUp I pushed all the indexes in the boardIndexes.
+When the user releases the mouse button, onMouseUp gets fired and I send the boardIndexes state to
+the server. The server on getting this message calculates the word using the indexes and sends it back
+to from where it was received. For the coloring purpose onMouseUp I reset the colors. For the 
+unselection part, whenever a onMouseEnter event occured I checked whether the current index is the 
+second last element in boardIndexes state, if yes I just deleted the last element in boardIndexes
+and reset the color if that delete index on the grid.
+PART3:
+For validation purposes first I validated 3 things, first the lenght of the index array is > 2, second
+I wrote a function which checked for duplicate values, third I wrote a function to check whether any 
+two consecutive coordinates are adjacent or not. If all these checks are passed then I parse the 
+dictionary from the file and check whether the word that was made is in or not, if not I sent the
+appropriate messages. 
+PART4:
+Inorder to achieve the functionality in part4 I created a map of letters to their score. Then I used
+a simple loop to calculate the total score of the word. To store the stores of the players I used maps
+and after calculating the score I update that and sent the scores to the client.
+PART5:
+In server side I used a timer which reset after 60 seconds. whenever the timer reset I sent a new
+grid from the board.txt file and send it to all the clients attached along with the current value of
+the global timer. I also reset all the score maps. on the client side I also made a similar timer.
+Whenever I got a new board I also received a timer, and I started the timer on the first board and 
+on the next board I just reset the timer. This timer was stored in a state, hence whenever I called
+setTimer the appropriate element got updated
